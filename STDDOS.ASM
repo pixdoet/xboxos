@@ -1,4 +1,4 @@
-	TITLE	Xbox OS by Ian Hiew, May 12, 2021
+	TITLE	MS-DOS version 1.25 by Tim Paterson     March 3, 1982
 	PAGE	60,132
 ; Use the following booleans to set the switches 
 FALSE	EQU	0

@@ -33,7 +33,7 @@ COMDRV  EQU     1
         ENDIF
 
         IF      MSVER
-SYM     EQU     ":-"
+SYM     EQU     "$"
 COMDRV  EQU     0
         ENDIF
 
@@ -121,7 +121,7 @@ DRVLET  DB      "A"
 NEWLIN  DB      13,10,"$"
 REQUEST DB      "(A)bort, (R)etry, (I)gnore? $"
 BADFAT  DB      13,10,"File allocation table bad,$"
-COMBAD  DB      13,10,"Invalid XBOX.COM"
+COMBAD  DB      13,10,"Invalid COMMAND.COM"
 NEEDCOM DB      13,10,"Insert Xbox disk in "
         IF      IBMVER
         DB      "drive A"
@@ -171,13 +171,13 @@ PAUSMES DB      "Strike a key when ready . . . $"
 BADSWT  DB      "Illegal switch",13,10,"$"
 WEEKTAB DB      "SunMonTueWedThuFriSat"
 BADDAT  DB      13,10,"Invalid date$"
-CURDAT  DB      "Current date is $"
+CURDAT  DB      "The date is $"
 NEWDAT  DB      13,10,"Enter new date: $"
 BADTIM  DB      13,10,"Invalid time$"
-CURTIM  DB      "Current time is $"
+CURTIM  DB      "The time is $"
 NEWTIM  DB      13,10,"Enter new time: $"
 SUREMES DB      "Are you sure (Y/N)? $"
-VEROUT  DB      "Xbox OS Version 1.0 (C) Ian Hiew"
+VEROUT  DB      "Xbox OS Version 1.1bf1 (C) Ian Hiew. $"
 
 COMTAB  DB      4,"DIR",1
         DW      OFFSET TRANGROUP:CATALOG
@@ -197,12 +197,16 @@ COMTAB  DB      4,"DIR",1
         DW      OFFSET TRANGROUP:COPY
         DB      6,"PAUSE",1
         DW      OFFSET TRANGROUP:PAUSE
-        DB      4,"REB",0
-        DW      OFFSET TRANGROUP:REB
         DB      5,"DATE",0
         DW      OFFSET TRANGROUP:DATE
         DB      5,"TIME",0
         DW      OFFSET TRANGROUP:TIME
+        DB      4,"VER",0
+        DW      OFFSET TRANGROUP:VER
+        DB      3,"LS",1
+        DW      OFFSET TRANGROUP:CATALOG
+        DB      5,"ECHO",1
+        DW      OFFSET TRANGROUP:ECHOS
         DB      0               ;Terminate command table
 
 COMBUF  DB      128,1,13
@@ -276,6 +280,7 @@ NOWRITE DB      1 DUP(?)
 ASCII   DB      1 DUP(?)
 PLUS    DB      1 DUP(?)
 SOURCE  DB      11 DUP(?)
+ECHOVAR DW      32 DUP(?)
 TRANSPACESIZE   EQU     $-ZERO
 TRANSPACE       ENDS
 
@@ -297,6 +302,7 @@ PROGSTART:
 
 LTPA    DW      0               ;WILL STORE TPA SEGMENT HERE
 MYSEG   DW      0               ;Put our own segment here
+
 
 CONTC:
         MOV     AX,CS
@@ -593,19 +599,21 @@ DRV0:
 
 
         IF MSVER
-HEADER  DB      13,10,"Command v. 1.0"
-        DB      13,10,"Xbox OS Version 1.0"
+HEADER  DB      13,10,"Command v. 1.1"
+        DB      13,10,"Xbox OS Version 1.1bf1"
         DB      13,10,"(C) 2021 Ian Hiew. "
         IF      HIGHMEM
         DB      "Running on High Memory",13,10,13,10
-        DB      "Free and open source, see http://github.com/pixdoet/xboxos"
+        ELSE
+        DB      "Not currently running on High Memory",13,10,13,10
         ENDIF
+        DB      "Free and open source, see http://github.com/pixdoet/xboxos"
         DB      13,10,"$"
         ENDIF
 
         IF IBMVER
-HEADER  DB      13,10,13,10,"Xbox OS 1.0.0",13,10
-        DB      "Version 1.10 (C)Copyright 2021 Ian Hiew",13,10,"$"
+HEADER  DB      13,10,13,10,"Command.com v. 1.1",13,10
+        DB      "Version 1.1bf1 (C)Copyright 2021 Ian Hiew",13,10,"$"
         DB      "Free software, licensed under the GNU GPL"
         ENDIF
 
@@ -1941,6 +1949,12 @@ TIMERR:
         INT     33              ;Print error message
         JMP     GETTIM          ;Try again
 
+VER:
+        MOV     DX,OFFSET TRANGROUP:VEROUT     ;"Version"
+        MOV     AH,PRINTBUF
+        INT     21H
+        JMP     COMMAND
+
 GETBUF:
         MOV     AH,PRINTBUF
         INT     33              ;Print "Enter new date: "
@@ -2158,11 +2172,7 @@ SETUP:
         XOR     CX,CX
         MOV     DX,CX           ;Assume no batch file
 
-REB:
-        MOV     DS,AX
-        MOV     AX,0000
-        MOV     [0472],AX
-        JMP     FFFF:000
+
 
 ASSUME  CS:RESGROUP
         TEST    CS:[BATCH],-1   ;Batch file in progress?
