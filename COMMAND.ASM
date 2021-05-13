@@ -178,6 +178,7 @@ CURTIM  DB      "The time is $"
 NEWTIM  DB      13,10,"Enter new time: $"
 SUREMES DB      "Are you sure (Y/N)? $"
 VEROUT  DB      "Xbox OS Version 1.1bf1 (C) Ian Hiew. $"
+STDOWN  DB      "It is safe to power off your computer now. $"
 
 COMTAB  DB      4,"DIR",1
         DW      OFFSET TRANGROUP:CATALOG
@@ -205,8 +206,8 @@ COMTAB  DB      4,"DIR",1
         DW      OFFSET TRANGROUP:VER
         DB      3,"LS",1
         DW      OFFSET TRANGROUP:CATALOG
-        DB      5,"ECHO",1
-        DW      OFFSET TRANGROUP:ECHOS
+        DB      9,"SHUTDOWN",0
+        DW      OFFSET TRANGROUP:REB
         DB      0               ;Terminate command table
 
 COMBUF  DB      128,1,13
@@ -2172,7 +2173,18 @@ SETUP:
         XOR     CX,CX
         MOV     DX,CX           ;Assume no batch file
 
+REB:
+        MOV     DX,OFFSET TRANGROUP:STDOWN     ;"Version"
+        MOV     AH,PRINTBUF
+        INT     21H
+        MOV     CX, 0FH
+        MOV     DX, 4240H
+        MOV     AH, 86H
+        INT     15H
 
+        DB      0X0EA
+        DW      0X0000
+        DW      0XFFFF
 
 ASSUME  CS:RESGROUP
         TEST    CS:[BATCH],-1   ;Batch file in progress?
@@ -2186,4 +2198,3 @@ TRANCODE        ENDS
 COMLEN  EQU     TRANDATASIZE+TRANCODESIZE-102H          ;End of COMMAND load. ZERO Needed to make COMLEN absolute
 TRNLEN  EQU     (PRETRLEN+TRANCODESIZE+TRANDATASIZE+15)/16              ;Length of transient in paragraphs
         END     PROGSTART
-
