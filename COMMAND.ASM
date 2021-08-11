@@ -177,7 +177,7 @@ BADTIM  DB      13,10,"Invalid time$"
 CURTIM  DB      "The time is $"
 NEWTIM  DB      13,10,"Enter new time: $"
 SUREMES DB      "Are you sure (Y/N)? $"
-VEROUT  DB      "Xbox OS Version 1.2bf1 (C) Ian Hiew. $"
+VEROUT  DB      "Xbox OS Version 1.3bf1 (C) Ian Hiew. $"
 REBMSG  DB      "Rebooting system... $"
 STDOWN  DB      "It is safe to power off your computer now. $"
 
@@ -208,6 +208,8 @@ COMTAB  DB      4,"DIR",1
         DB      3,"LS",1
         DW      OFFSET TRANGROUP:CATALOG
         DB      7,"REBOOT",0
+        DW      OFFSET TRANGROUP:REB
+        DB      3,"RB",0
         DW      OFFSET TRANGROUP:REB
         DB      0               ;Terminate command table
 
@@ -602,7 +604,7 @@ DRV0:
 
         IF MSVER
 HEADER  DB      13,10,"Command v. 1.1"
-        DB      13,10,"Xbox OS Version 1.2bf1"
+        DB      13,10,"Xbox OS Version 1.3bf1"
         DB      13,10,"(C) 2021 Ian Hiew. "
         IF      HIGHMEM
         DB      "Running on High Memory",13,10,13,10
@@ -615,7 +617,7 @@ HEADER  DB      13,10,"Command v. 1.1"
 
         IF IBMVER
 HEADER  DB      13,10,13,10,"Command.com v. 1.1",13,10
-        DB      "Version 1.2bf1 (C)Copyright 2021 Ian Hiew",13,10,"$"
+        DB      "Version 1.3bf1 (C)Copyright 2021 Ian Hiew",13,10,"$"
         DB      "Free software, licensed under the GNU GPL"
         ENDIF
 
