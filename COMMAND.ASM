@@ -177,7 +177,8 @@ BADTIM  DB      13,10,"Invalid time$"
 CURTIM  DB      "The time is $"
 NEWTIM  DB      13,10,"Enter new time: $"
 SUREMES DB      "Are you sure (Y/N)? $"
-VEROUT  DB      "Xbox OS Version 1.1bf1 (C) Ian Hiew. $"
+VEROUT  DB      "Xbox OS Version 1.2bf1 (C) Ian Hiew. $"
+REBMSG  DB      "Rebooting system... $"
 STDOWN  DB      "It is safe to power off your computer now. $"
 
 COMTAB  DB      4,"DIR",1
@@ -206,7 +207,7 @@ COMTAB  DB      4,"DIR",1
         DW      OFFSET TRANGROUP:VER
         DB      3,"LS",1
         DW      OFFSET TRANGROUP:CATALOG
-        DB      9,"SHUTDOWN",0
+        DB      7,"REBOOT",0
         DW      OFFSET TRANGROUP:REB
         DB      0               ;Terminate command table
 
@@ -601,7 +602,7 @@ DRV0:
 
         IF MSVER
 HEADER  DB      13,10,"Command v. 1.1"
-        DB      13,10,"Xbox OS Version 1.1bf1"
+        DB      13,10,"Xbox OS Version 1.2bf1"
         DB      13,10,"(C) 2021 Ian Hiew. "
         IF      HIGHMEM
         DB      "Running on High Memory",13,10,13,10
@@ -614,7 +615,7 @@ HEADER  DB      13,10,"Command v. 1.1"
 
         IF IBMVER
 HEADER  DB      13,10,13,10,"Command.com v. 1.1",13,10
-        DB      "Version 1.1bf1 (C)Copyright 2021 Ian Hiew",13,10,"$"
+        DB      "Version 1.2bf1 (C)Copyright 2021 Ian Hiew",13,10,"$"
         DB      "Free software, licensed under the GNU GPL"
         ENDIF
 
@@ -2174,17 +2175,16 @@ SETUP:
         MOV     DX,CX           ;Assume no batch file
 
 REB:
-        MOV     DX,OFFSET TRANGROUP:STDOWN     ;"Version"
+        MOV     DX,OFFSET TRANGROUP:REBMSG     ;"Reboot Message"
         MOV     AH,PRINTBUF
         INT     21H
-        MOV     CX, 0FH
-        MOV     DX, 4240H
-        MOV     AH, 86H
+        ; Wait 3 seconds...or something
+        MOV     AL,0
+        MOV     AH,86H
+        MOV     CX,10H
+        MOV     DX,20H
         INT     15H
-
-        DB      0X0EA
-        DW      0X0000
-        DW      0XFFFF
+        INT     19H     ;Reboot interrupt wtf working
 
 ASSUME  CS:RESGROUP
         TEST    CS:[BATCH],-1   ;Batch file in progress?
